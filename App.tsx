@@ -18,7 +18,23 @@ const App: React.FC = () => {
   const santaRef = useRef<HTMLDivElement>(null);
   const lastClickPos = useRef({ x: 0, y: 0 });
 
-  const startExperience = () => {
+  const startExperience = async () => {
+    // Request fullscreen to hide browser UI on mobile
+    try {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        await elem.requestFullscreen();
+      } else if ((elem as any).webkitRequestFullscreen) {
+        await (elem as any).webkitRequestFullscreen();
+      } else if ((elem as any).mozRequestFullScreen) {
+        await (elem as any).mozRequestFullScreen();
+      } else if ((elem as any).msRequestFullscreen) {
+        await (elem as any).msRequestFullscreen();
+      }
+    } catch (error) {
+      console.log("Fullscreen request failed:", error);
+    }
+
     setHasStarted(true);
     setIsMusicPlaying(true);
     if (audioRef.current) {
@@ -58,20 +74,22 @@ const App: React.FC = () => {
   }, [showWishCard]);
 
   const handleOpenCard = () => {
+    // Ẩn lá thư trên cây ngay lập tức
+    setIsLetterOnTree(false);
+    
     if (santaRef.current) {
       const santaRect = santaRef.current.getBoundingClientRect();
       // Tính toán điểm đích là tay ông già Noel (ước lượng từ vị trí khung bao)
       setFlyCoords({
-        startX: lastClickPos.current.x - 20, // Trừ 1/2 chiều rộng lá thư để tâm trùng chuột
-        startY: lastClickPos.current.y - 15,
-        endX: santaRect.left + santaRect.width / 2 - 20,
+        startX: lastClickPos.current.x - 12, // Trừ 1/2 chiều rộng lá thư để tâm trùng chuột
+        startY: lastClickPos.current.y - 8,
+        endX: santaRect.left + santaRect.width / 2 - 12,
         endY: santaRect.top + santaRect.height / 2
       });
     }
 
-    // 1. Start the flying animation
+    // Start the flying animation
     setIsLetterFlying(true);
-    setIsLetterOnTree(false); // Ẩn lá thư trên cây ngay khi bắt đầu bay
 
     // 2. After animation duration (1s), Santa catches it
     setTimeout(() => {
@@ -102,6 +120,21 @@ const App: React.FC = () => {
         .font-body { font-family: 'Quicksand', sans-serif; }
         .wood-plank {
            background: repeating-linear-gradient(0deg, #3E2723, #3E2723 48px, #271c19 50px);
+        }
+        .brick-wall {
+          background-color: #7f2e1e;
+          background-image: 
+            linear-gradient(#3E2723 2px, transparent 2px),
+            linear-gradient(90deg, #3E2723 2px, transparent 2px),
+            linear-gradient(90deg, #3E2723 2px, transparent 2px);
+          background-size: 
+            100% 60px, 
+            40px 40px, 
+            40px 40px;
+          background-position: 
+            0 0, 
+            0 0, 
+            40px 40px;
         }
         @keyframes fire-flicker {
           0%, 100% { transform: scale(1); opacity: 0.8; }
@@ -139,6 +172,8 @@ const App: React.FC = () => {
       <div className="absolute top-8 left-4 md:left-16 w-48 h-64 md:w-64 md:h-80 bg-slate-900 border-8 border-[#5D4037] rounded-t-full shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden z-0">
         {/* Sky Gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A] to-[#1E293B]"></div>
+        {/* Moon */}
+        <div className="absolute top-6 right-6 w-10 h-10 bg-[#fefce8] rounded-full shadow-[0_0_20px_5px_rgba(255,255,255,0.4)] opacity-90"></div>
         {/* Snowfall contained in window */}
         <div className="absolute inset-0 opacity-80">
             <Snowfall />
@@ -155,11 +190,13 @@ const App: React.FC = () => {
       </div>
 
       {/* Fireplace */}
-      <div className="absolute bottom-0 right-4 md:right-16 w-64 h-56 md:w-80 md:h-72 bg-[#4e342e] z-0 flex flex-col items-center justify-end rounded-t-lg shadow-2xl border-x-4 border-t-4 border-[#3e2723]">
+      <div className="absolute bottom-0 right-4 md:right-16 w-64 h-56 md:w-80 md:h-72 brick-wall z-0 flex flex-col items-center justify-end rounded-t-lg shadow-2xl border-x-4 border-t-4 border-[#3e2723]">
          {/* Mantle */}
-         <div className="absolute top-[-10px] w-[110%] h-6 bg-[#5d4037] rounded shadow-lg border border-[#3e2723]"></div>
+         <div className="absolute top-[-12px] w-[115%] h-8 bg-[#5d4037] rounded-sm shadow-xl border-2 border-[#3e2723] flex items-center justify-center">
+            <div className="w-full h-full border-b-4 border-[#3e2723]/30"></div>
+         </div>
          {/* Hearth Opening */}
-         <div className="relative w-40 h-32 md:w-52 md:h-40 bg-[#1a100e] rounded-t-full overflow-hidden flex justify-center items-end shadow-[inset_0_0_30px_rgba(0,0,0,0.9)] mb-0">
+         <div className="relative w-40 h-32 md:w-52 md:h-40 bg-[#1a100e] rounded-t-full overflow-hidden flex justify-center items-end shadow-[inset_0_0_30px_rgba(0,0,0,0.9)] mb-0 border-4 border-[#3e2723]">
             {/* Fire Glow */}
             <div className="absolute bottom-0 w-full h-full bg-orange-500/20 blur-xl animate-pulse"></div>
             {/* Flames */}
@@ -171,7 +208,7 @@ const App: React.FC = () => {
       </div>
 
       {/* Santa Claus - Standing left of the tree */}
-      <div ref={santaRef} className="absolute bottom-10 left-4 md:left-[15%] z-20">
+      <div ref={santaRef} className="absolute bottom-10 left-[-20px] md:left-[15%] z-20">
         <SantaClaus isReading={santaState === 'reading'} />
         {/* Gift boxes near Santa */}
         <div className="absolute -right-8 bottom-0 text-4xl drop-shadow-lg">🎁</div>
@@ -180,11 +217,6 @@ const App: React.FC = () => {
 
       {/* Main Content Container */}
       <div className="relative z-10 flex flex-col items-center justify-center w-full px-4 py-8">
-        
-        {/* Title */}
-        {/* <h1 className="font-christmas text-6xl md:text-8xl text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-200 to-green-500 animate-float drop-shadow-[0_5px_5px_rgba(0,0,0,0.5)] mb-2 text-center">
-          Merry Christmas
-        </h1> */}
 
         {/* The Tree */}
         <div 
@@ -208,11 +240,10 @@ const App: React.FC = () => {
             animation: 'fly-to-santa 1s ease-in-out forwards' 
           } as React.CSSProperties}
         >
-          <svg width="40" height="30" viewBox="0 0 40 30" className="drop-shadow-xl">
-            <rect x="2" y="5" width="36" height="22" rx="2" fill="#FFF8DC" stroke="#D4A574" strokeWidth="2" />
-            <line x1="8" y1="12" x2="32" y2="12" stroke="#8B4513" strokeWidth="1.5" />
-            <line x1="8" y1="17" x2="32" y2="17" stroke="#8B4513" strokeWidth="1.5" />
-            <circle cx="20" cy="16" r="3" fill="#ef4444" />
+          <svg width="48" height="32" viewBox="0 0 24 16" className="drop-shadow-xl">
+            <rect width="24" height="16" fill="#f8fafc" stroke="#94a3b8" strokeWidth="0.5" rx="1" filter="drop-shadow(0 1px 1px rgba(0,0,0,0.3))" />
+            <path d="M0,0 L12,8 L24,0" fill="none" stroke="#cbd5e1" strokeWidth="0.5" />
+            <circle cx="12" cy="9" r="2.5" fill="#ef4444" />
           </svg>
         </div>
       )}
@@ -235,25 +266,36 @@ const App: React.FC = () => {
                      style={{ backgroundImage: 'radial-gradient(#ff0000 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
                 </div>
 
-                {/* Corner Decorations */}
-                <div className="absolute top-2 left-2 text-2xl animate-pulse">❄️</div>
-                <div className="absolute top-2 right-2 text-2xl animate-pulse delay-75">❄️</div>
-                <div className="absolute bottom-2 left-2 text-2xl animate-pulse delay-150">❄️</div>
-                <div className="absolute bottom-2 right-2 text-2xl animate-pulse delay-300">❄️</div>
-
                 {/* Santa & Bells Header */}
                 <div className="flex items-center justify-center space-x-4 mb-4 z-10">
                     <div className="text-4xl" style={{ animation: 'wiggle 1s ease-in-out infinite' }}>🔔</div>
                     <div className="w-24 h-24 bg-red-50 rounded-full border-4 border-red-500 flex items-center justify-center shadow-lg overflow-hidden relative">
                         {/* Mini Santa SVG */}
                         <svg viewBox="0 0 100 100" className="w-20 h-20">
-                            <circle cx="50" cy="50" r="40" fill="#fecaca" />
-                            <path d="M10,40 Q50,0 90,40" fill="#ef4444" />
-                            <circle cx="50" cy="10" r="8" fill="white" />
-                            <path d="M10,50 Q50,90 90,50" fill="white" />
-                            <circle cx="35" cy="45" r="3" fill="black" />
-                            <circle cx="65" cy="45" r="3" fill="black" />
-                            <circle cx="50" cy="55" r="4" fill="#ef4444" />
+                            {/* Hat */}
+                            <path d="M20,45 L50,15 L80,45 L75,50 L50,50 L25,50 Z" fill="#E31C23" />
+                            <ellipse cx="50" cy="50" rx="28" ry="5" fill="#FFFFFF" />
+                            <circle cx="50" cy="15" r="6" fill="#FFFFFF" />
+
+                            {/* Face */}
+                            <circle cx="50" cy="60" r="24" fill="#FFDAB9" />
+
+                            {/* Beard */}
+                            <path d="M26,65 Q23,72 28,78 Q35,83 50,81 Q65,83 72,78 Q77,72 74,65 Z" fill="#FFFFFF" />
+                            <ellipse cx="33" cy="74" rx="10" ry="11" fill="#FFFFFF" />
+                            <ellipse cx="67" cy="74" rx="10" ry="11" fill="#FFFFFF" />
+
+                            {/* Eyes */}
+                            <circle cx="42" cy="58" r="3" fill="#000000" />
+                            <circle cx="58" cy="58" r="3" fill="#000000" />
+                            <circle cx="43" cy="57" r="1.5" fill="#FFFFFF" />
+                            <circle cx="59" cy="57" r="1.5" fill="#FFFFFF" />
+
+                            {/* Nose */}
+                            <circle cx="50" cy="63" r="2.5" fill="#FF6B6B" />
+
+                            {/* Mouth */}
+                            <path d="M45,67 Q50,70 55,67" stroke="#FF6B6B" strokeWidth="1.5" fill="none" strokeLinecap="round" />
                         </svg>
                     </div>
                     <div className="text-4xl" style={{ animation: 'wiggle 1s ease-in-out infinite', animationDelay: '0.5s' }}>🔔</div>
@@ -261,23 +303,23 @@ const App: React.FC = () => {
 
                 {/* Title */}
                 <h2 className="font-christmas text-5xl text-red-600 mb-2 drop-shadow-sm z-10">
-                    Dear my beloved,
+                    Dear chị bé Vy
                 </h2>
                 <div className="w-32 h-1 bg-gradient-to-r from-transparent via-red-300 to-transparent mb-6"></div>
 
                 {/* Content */}
                 <div className="font-body text-lg text-slate-700 leading-relaxed space-y-3 z-10 relative bg-white/60 p-4 rounded-xl shadow-sm">
-                    <p className="text-red-500 font-bold text-xl font-christmas">
-                        "Ho Ho Ho! Merry Christmas! 🎄"
-                    </p>
+                    {/* <p className="text-red-500 font-bold text-xl font-christmas">
+                        "Ho Ho Ho!"
+                    </p> */}
                     <p className="text-slate-600">
-                        Santa đã nhận được điều ước của em rồi!
+                        Santa đã nhận được điều ước của anh rồi!
                     </p>
                     <p className="italic font-medium text-slate-800 border-l-4 border-red-400 pl-3 py-1 my-2 bg-red-50/50">
                         "Cảm ơn em vì đã là món quà giáng sinh tuyệt vời nhất mà anh nhận được cho mùa đông năm nay."
                     </p>
                     <div className="flex justify-end items-center mt-4 text-red-600 font-bold font-christmas text-xl">
-                        <span>- Santa Claus -</span>
+                        <span>- Khóa Cho -</span>
                         <span className="ml-2 text-2xl">🎅</span>
                     </div>
                 </div>

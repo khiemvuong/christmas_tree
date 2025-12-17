@@ -83,11 +83,10 @@ const SantaClaus: React.FC<SantaClausProps> = ({ isReading, className, style }) 
       <div
         className={`absolute bottom-[-10px] left-1/2 -translate-x-1/2 transition-opacity duration-500 ${isReading ? 'opacity-100' : 'opacity-0'}`}
       >
-        <svg width="40" height="30" viewBox="0 0 40 30">
-          <rect x="2" y="5" width="36" height="22" rx="2" fill="#FFF8DC" stroke="#D4A574" strokeWidth="2" />
-          <line x1="8" y1="12" x2="32" y2="12" stroke="#8B4513" strokeWidth="1.5" />
-          <line x1="8" y1="17" x2="32" y2="17" stroke="#8B4513" strokeWidth="1.5" />
-          <circle cx="20" cy="16" r="3" fill="#ef4444" />
+        <svg width="48" height="32" viewBox="0 0 24 16">
+          <rect width="24" height="16" fill="#f8fafc" stroke="#94a3b8" strokeWidth="0.5" rx="1" filter="drop-shadow(0 1px 1px rgba(0,0,0,0.3))" />
+          <path d="M0,0 L12,8 L24,0" fill="none" stroke="#cbd5e1" strokeWidth="0.5" />
+          <circle cx="12" cy="9" r="2.5" fill="#ef4444" />
         </svg>
       </div>
 
