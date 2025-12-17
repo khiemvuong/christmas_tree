@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  web:
+    image: tree:latest
+    container_name: khoahoang
+    ports:
+      - "127.0.0.1:3001:80"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
